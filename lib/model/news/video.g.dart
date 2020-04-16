@@ -8,7 +8,7 @@ part of 'video.dart';
 
 Video _$VideoFromJson(Map<String, dynamic> json) {
   return Video(
-      json['duration'] as int,
+      (json['duration'] as num)?.toDouble(),
       json['hd_id'] as int,
       json['rate'] as String,
       json['height'] as int,

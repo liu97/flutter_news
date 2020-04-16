@@ -39,4 +39,11 @@ abstract class BaseDao {
     }
     return await DbManager.getCurrentDatabase();
   }
+
+  dropTable() async {
+    if (isTableExits) {
+      Database db = await DbManager.getCurrentDatabase();
+      await db.execute('drop table ${DbManager.NAME}.${tableName()}');
+    }
+  }
 }

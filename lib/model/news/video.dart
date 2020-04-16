@@ -4,7 +4,7 @@ part 'video.g.dart';
 
 @JsonSerializable()
 class Video{
-  int duration;
+  double duration;
   @JsonKey(name: "hd_id")
   int hdId;
   String rate;

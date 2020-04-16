@@ -13,11 +13,9 @@ NewsList _$NewsListFromJson(Map<String, dynamic> json) {
       json['mediaId'] as String,
       json['mediaName'] as String,
       json['articleUrl'] as String,
-      json['commentNum'] as String,
-      json['createTime'] == null
-          ? null
-          : DateTime.parse(json['createTime'] as String),
-      json['filterWords'] as String)
+      json['commentNum'] as int,
+      json['createTime'] as int,
+      json['channelId'] as int)
     ..pics = (json['pics'] as List)
         ?.map((e) =>
             e == null ? null : Picture.fromJson(e as Map<String, dynamic>))
@@ -35,8 +33,8 @@ Map<String, dynamic> _$NewsListToJson(NewsList instance) => <String, dynamic>{
       'mediaName': instance.mediaName,
       'articleUrl': instance.articleUrl,
       'commentNum': instance.commentNum,
-      'createTime': instance.createTime?.toIso8601String(),
-      'filterWords': instance.filterWords,
+      'createTime': instance.createTime,
       'pics': instance.pics,
-      'videos': instance.videos
+      'videos': instance.videos,
+      'channelId': instance.channelId
     };

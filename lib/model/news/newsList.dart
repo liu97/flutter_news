@@ -11,15 +11,15 @@ class NewsList{
   String mediaId;
   String mediaName;
   String articleUrl;
-  String commentNum;
-  DateTime createTime;
-  String filterWords;
+  int commentNum;
+  int createTime;
   List<Picture> pics;
   List<Video> videos;
+  int channelId;
 
 
   NewsList(this.title, this.newsId, this.mediaId, this.mediaName, this.articleUrl, 
-  this.commentNum, this.createTime, this.filterWords);
+  this.commentNum, this.createTime, this.channelId);
 
   //不同的类使用不同的mixin即可
   factory NewsList.fromJson(Map<String, dynamic> json) => _$NewsListFromJson(json);

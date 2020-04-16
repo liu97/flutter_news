@@ -1,8 +1,9 @@
+import 'dart:io';
+import 'dart:convert';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter_news/api/api.dart';
-import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 class HttpUtil {
@@ -90,7 +91,7 @@ class HttpUtil {
       print('get error---------$e');
       formatError(e);
     }
-    return response;
+    return json.decode(response.toString());
   }
 
   /*
@@ -106,7 +107,7 @@ class HttpUtil {
       print('post error---------$e');
       formatError(e);
     }
-    return response;
+    return json.decode(response.toString());
   }
 
   /*
@@ -125,7 +126,7 @@ class HttpUtil {
       print('downloadFile error---------$e');
       formatError(e);
     }
-    return response.data;
+    return json.decode(response.toString());
   }
 
   /*

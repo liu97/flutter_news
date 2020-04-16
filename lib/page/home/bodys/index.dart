@@ -46,7 +46,7 @@ class _IndexPageState extends State<IndexPage>
             //圆形头像
             child: CircleAvatar(
               backgroundImage: NetworkImage(
-                'https://tvax2.sinaimg.cn/crop.0.0.896.896.180/006d1iXrly8gd0qgfhan2j30ow0owaby.jpg',
+                'https://qlogo2.store.qq.com/qzone/1139472029/1139472029/100?1534941460',
               ),
             ),
             onTap: _goToUserCenter,

@@ -5,7 +5,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DbManager {
   static const _VERSION = 1;
-  static const _NAME = "flutter_news.db";
+  static const NAME = "flutter_news.db";
   static Database _database;
 
   Database get database => _database;
@@ -14,9 +14,9 @@ class DbManager {
   static _init() async {
     // 打开数据库
     var databasesPath = await getDatabasesPath();
-    String path = databasesPath + _NAME;
+    String path = databasesPath + NAME;
     if (Platform.isIOS) {
-      path = databasesPath + "/" + _NAME;
+      path = databasesPath + "/" + NAME;
     }
     _database = await openDatabase(path, version: _VERSION,
         onCreate: (Database db, int version) async {

@@ -41,6 +41,7 @@ dependencies:
   json_annotation: ^2.0.0
 
 dev_dependencies:
+  json_model: ^0.0.2
   # 编写运行构建器的二进制文件的工具
   build_runner: ^1.0.0
   # 序列化和反序列化工具
