@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
 class SearchBarInput extends StatelessWidget {
-  TextEditingController controller;
-  FocusNode focusNode;
-  String hintText;
-  TextInputAction textInputAction;
-  TextInputType keyboardType;
-  TextStyle style;
-  TextAlign textAlign;
-  bool autofocus;
-  ValueChanged<String> onSubmitted;
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String hintText;
+  final TextInputAction textInputAction;
+  final TextInputType keyboardType;
+  final TextStyle style;
+  final TextAlign textAlign;
+  final bool autofocus;
+  final ValueChanged<String> onSubmitted;
 
   SearchBarInput({
     Key key,

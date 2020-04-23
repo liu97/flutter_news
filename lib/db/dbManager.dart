@@ -3,20 +3,18 @@ import 'dart:io';
 
 import 'package:sqflite/sqflite.dart';
 
+// 数据库管理工具，主要做数据库的初始化、提供isTableExits查询、getCurrentDatabase函数
 class DbManager {
   static const _VERSION = 1;
-  static const NAME = "flutter_news.db";
+  static const _NAME = "flutter_news.db";
   static Database _database;
-
-  Database get database => _database;
-
   // 初始化
   static _init() async {
     // 打开数据库
     var databasesPath = await getDatabasesPath();
-    String path = databasesPath + NAME;
+    String path = databasesPath + _NAME;
     if (Platform.isIOS) {
-      path = databasesPath + "/" + NAME;
+      path = databasesPath + "/" + _NAME;
     }
     _database = await openDatabase(path, version: _VERSION,
         onCreate: (Database db, int version) async {

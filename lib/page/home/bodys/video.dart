@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_news/widget/input/searchBarInput.dart';
-import 'package:flutter_news/model/news/newsListBean.dart';
-import 'package:flutter_news/model/news/newsList.dart';
-import 'package:flutter_news/db/dao/newsList.dart';
+import 'package:flutter_news/model/recommend.dart';
+import 'package:flutter_news/db/dao/newsDao.dart';
 
 class VideoPage extends StatefulWidget {
   VideoPage({Key key}) : super(key: key);
@@ -23,16 +22,16 @@ class _VideoPageState extends State<VideoPage> {
   }
 
   _init() async {
-    NewsListDao db = NewsListDao();
-    NewsListBean newsListBean = NewsListBean.fromJson(map);
+    NewsDao db = NewsDao();
+    // Recommend recommend = Recommend.fromJson(map);
 
-    for (int i = 0; i < newsListBean?.articles?.length; i++) {
-      newsListBean.articles[i].channelId = newsListBean.channelId;
-      await db.insert(newsListBean.articles[i]);
-    }
-
-    List<NewsList> newsLists = await db.getLimitNewsList();
-    print(newsLists[0]?.title);
+    // for (int i = 0; i < recommend?.articles?.length; i++) {
+    //   recommend.articles[i].channelId = recommend.channelId;
+    //   await db.insert(recommend.articles[i]);
+    // }
+    // await db.dropTable();
+    List<News> newss = await db.getLimitNews(limit:20);
+    print(newss.length);
   }
 
   @override

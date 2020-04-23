@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 // 仅仅是看起来像输入框，供用户点击
 class ClickInput extends StatelessWidget {
-  String hintText;
-  GestureTapCallback onTap;
+  final String hintText;
+  final GestureTapCallback onTap;
   ClickInput({
     Key key,
     this.hintText = '',

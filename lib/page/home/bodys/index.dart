@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_news/widget/input/clickInput.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_news/page/home/bloc/newsBloc.dart';
+import 'package:flutter_news/page/home/bloc/newsEvent.dart';
+import 'package:flutter_news/page/home/bloc/newsState.dart';
+import 'package:flutter_news/model/recommend.dart';
 
 class IndexPage extends StatefulWidget {
   IndexPage({Key key}) : super(key: key);
@@ -78,14 +82,13 @@ class _IndexPageState extends State<IndexPage>
             //选中的颜色
             labelColor: Colors.black,
             //选中的样式
-            labelStyle: TextStyle(fontSize: 14,fontWeight: FontWeight.w500),
+            labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             //未选中的颜色
             unselectedLabelColor: Colors.black87,
             //未选中的样式
             unselectedLabelStyle: TextStyle(fontSize: 14),
             //下划线颜色
             indicatorColor: Theme.of(context).primaryColor,
-
             indicatorSize: TabBarIndicatorSize.label,
             //是否可滑动
             isScrollable: true,
@@ -96,12 +99,116 @@ class _IndexPageState extends State<IndexPage>
         controller: _tabController,
         children: tabs.map((e) {
           //创建3个Tab页
-          return Container(
-            alignment: Alignment.center,
-            child: Text(e, textScaleFactor: 5),
+          return BlocProvider(
+            create: (context) => NewsBloc(channelId: 1),
+            child: PageList(),
           );
         }).toList(),
       ),
     );
+  }
+}
+
+class PageList extends StatefulWidget {
+  @override
+  _PageListState createState() => _PageListState();
+}
+
+class _PageListState extends State<PageList> {
+  final _scrollController = ScrollController();
+  final _scrollThreshold = 200.0;
+  NewsBloc _newsBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    _newsBloc = BlocProvider.of<NewsBloc>(context);
+    _newsBloc.add(Fetch());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<NewsBloc, NewsState>(
+      builder: (context, state) {
+        if (state is NewsError) {
+          return Center(
+            child: Text('failed to fetch news'),
+          );
+        }
+        if (state is NewsLoaded) {
+          if (state.newsList.isEmpty) {
+            return Center(
+              child: Text('no newsList'),
+            );
+          }
+          return ListView.builder(
+            itemBuilder: (BuildContext context, int index) {
+              return index >= state.newsList.length
+                  ? BottomLoader()
+                  : NewsWidget(news: state.newsList[index]);
+            },
+            itemCount: state.newsList.length + 1,
+            controller: _scrollController,
+          );
+        }
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    if (maxScroll - currentScroll <= _scrollThreshold) {
+      _newsBloc.add(Fetch());
+    }
+  }
+}
+
+class BottomLoader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      child: Center(
+        child: SizedBox(
+          width: 33,
+          height: 33,
+          child: CircularProgressIndicator(
+            strokeWidth: 1.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NewsWidget extends StatelessWidget {
+  final News news;
+
+  const NewsWidget({Key key, @required this.news}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // return ListTile(
+    //   leading: Text(
+    //     '${news.id}',
+    //     style: TextStyle(fontSize: 10.0),
+    //   ),
+    //   title: Text(news.title),
+    //   isThreeLine: true,
+    //   subtitle: Text(news.body),
+    //   dense: true,
+    // );
+    return Text(news.title);
   }
 }

@@ -6,17 +6,12 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter_news/api/api.dart';
 import 'package:path_provider/path_provider.dart';
 
+// http请求封装，包含get、post、downloadFile
 class HttpUtil {
-  static HttpUtil instance;
   Dio dio;
   BaseOptions options;
 
   CancelToken cancelToken = CancelToken();
-
-  static HttpUtil getInstance() {
-    if (null == instance) instance = HttpUtil();
-    return instance;
-  }
 
   /*
    * config it and create
@@ -74,7 +69,10 @@ class HttpUtil {
   /*
    * get请求
    */
-  get(url, {data, options, cancelToken}) async {
+  get(String url,
+      {Map<String, dynamic> data,
+      Options options,
+      CancelToken cancelToken}) async {
     Response response;
     try {
       response = await dio.get(url,
@@ -97,7 +95,10 @@ class HttpUtil {
   /*
    * post请求
    */
-  post(url, {data, options, cancelToken}) async {
+  post(String url,
+      {Map<String, dynamic> data,
+      Options options,
+      CancelToken cancelToken}) async {
     Response response;
     try {
       response = await dio.post(url,
@@ -113,7 +114,7 @@ class HttpUtil {
   /*
    * 下载文件
    */
-  downloadFile(urlPath, savePath) async {
+  downloadFile(String urlPath, dynamic savePath) async {
     Response response;
     try {
       response = await dio.download(urlPath, savePath,

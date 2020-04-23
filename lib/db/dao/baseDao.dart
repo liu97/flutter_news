@@ -3,8 +3,7 @@ import 'package:meta/meta.dart';
 import 'package:sqflite/sqflite.dart';
 import '../dbManager.dart';
 
-
-///基类
+// 表基类
 abstract class BaseDao {
   bool isTableExits = false;
 
@@ -34,6 +33,7 @@ abstract class BaseDao {
 
   @mustCallSuper
   open() async {
+    isTableExits = await DbManager.isTableExits(tableName());
     if (!isTableExits) {
       await prepare(tableName(), tableSqlString());
     }
@@ -41,9 +41,10 @@ abstract class BaseDao {
   }
 
   dropTable() async {
+    isTableExits = await DbManager.isTableExits(tableName());
     if (isTableExits) {
       Database db = await DbManager.getCurrentDatabase();
-      await db.execute('drop table ${DbManager.NAME}.${tableName()}');
+      await db.execute('drop table ${tableName()}');
     }
   }
 }

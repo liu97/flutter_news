@@ -39,6 +39,12 @@ dependencies:
   provider: ^4.0.4
   # 提供json_serializable的注释
   json_annotation: ^2.0.0
+  # 实现BLoC模式
+  flutter_bloc: ^4.0.0
+  # 一个有助于实现相等性的抽象类，而无需显式重写==和hashCode
+  equatable: ^1.1.1
+  # Dart Streams的扩展
+  rxdart: ^0.24.0
 
 dev_dependencies:
   json_model: ^0.0.2

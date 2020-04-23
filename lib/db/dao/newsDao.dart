@@ -1,14 +1,13 @@
 import 'package:sqflite/sqflite.dart';
 import './baseDao.dart';
-import 'package:flutter_news/model/news/newsList.dart';
+import 'package:flutter_news/model/recommend.dart';
 import 'dart:convert';
 
 // 新闻列表dao实现类
+class NewsDao extends BaseDao {
+  final String name = 'news';
 
-class NewsListDao extends BaseDao {
-  final String name = 'newList';
-
-  final String idColumn = "_id"; // id
+  final String idColumn = "id"; // id
   final String titleColumn = "title"; // 新闻标题
   final String newsIdColumn = "newsId"; // 新闻id
   final String mediaIdColumn = "mediaId"; // 媒体id
@@ -18,7 +17,7 @@ class NewsListDao extends BaseDao {
   final String createTimeColumn = "createTime"; // 文章创建时间
   final String picsColumn = "pics"; // 图片数组
   final String videosColumn = "videos"; // 视频数组
-  final String channelIdColumn = "channelId"; // 视频数组
+  final String channelIdColumn = "channelId"; // 频道id
 
   @override
   tableSqlString() {
@@ -38,24 +37,24 @@ class NewsListDao extends BaseDao {
   }
 
   // pics和videos需要特殊处理
-  Map<String, dynamic> toTabelJson(Map<String, dynamic> newListJson) {
+  Map<String, dynamic> toTabelJson(Map<String, dynamic> newsJson) {
     Map<String, dynamic> tableJson = {
-      titleColumn: newListJson[titleColumn],
-      newsIdColumn: newListJson[newsIdColumn],
-      mediaIdColumn: newListJson[mediaIdColumn],
-      mediaNameColumn: newListJson[mediaNameColumn],
-      articleUrlColumn: newListJson[articleUrlColumn],
-      commentNumColumn: newListJson[commentNumColumn],
-      createTimeColumn: newListJson[createTimeColumn],
-      picsColumn: newListJson[picsColumn] != null ? json.encode(newListJson[picsColumn]) : null,
-      videosColumn: newListJson[videosColumn] != null ? json.encode(newListJson[videosColumn]) : null,
-      channelIdColumn: newListJson[channelIdColumn],
+      titleColumn: newsJson[titleColumn],
+      newsIdColumn: newsJson[newsIdColumn],
+      mediaIdColumn: newsJson[mediaIdColumn],
+      mediaNameColumn: newsJson[mediaNameColumn],
+      articleUrlColumn: newsJson[articleUrlColumn],
+      commentNumColumn: newsJson[commentNumColumn],
+      createTimeColumn: newsJson[createTimeColumn],
+      picsColumn: newsJson[picsColumn] != null ? json.encode(newsJson[picsColumn]) : null,
+      videosColumn: newsJson[videosColumn] != null ? json.encode(newsJson[videosColumn]) : null,
+      channelIdColumn: newsJson[channelIdColumn],
     };
     return tableJson;
   }
 
   Map<String, dynamic> fromTabelJson(Map<String, dynamic> tableJson) {
-    Map<String, dynamic> newListJson = {
+    Map<String, dynamic> newsJson = {
       titleColumn: tableJson[titleColumn],
       newsIdColumn: tableJson[newsIdColumn],
       mediaIdColumn: tableJson[mediaIdColumn],
@@ -71,13 +70,13 @@ class NewsListDao extends BaseDao {
           : null,
       channelIdColumn: tableJson[channelIdColumn],
     };
-    return newListJson;
+    return newsJson;
   }
 
   ///插入到数据库
-  Future<int> insert(NewsList newList) async {
+  Future<int> insert(News news) async {
     Database db = await getDataBase();
-    return await db.insert(name, toTabelJson(newList.toJson()));
+    return await db.insert(name, toTabelJson(news.toJson()));
   }
 
   // 删除表中所有数据
@@ -90,7 +89,8 @@ class NewsListDao extends BaseDao {
     }
   }
 
-  Future<List<NewsList>> getLimitNewsList({limit = 11}) async {
+  // 根据limit获取新闻列表
+  Future<List<News>> getLimitNews({limit = 11}) async {
     Database db = await getDataBase();
     List<Map> results = await db.query(
       name,
@@ -98,13 +98,13 @@ class NewsListDao extends BaseDao {
       limit: limit,
     );
     if (results.length > 0) {
-      List<NewsList> newsLists;
-      newsLists = results.map((item) {
-        return NewsList.fromJson(fromTabelJson(item));
+      List<News> newss;
+      newss = results.map((item) {
+        return News.fromJson(fromTabelJson(item));
       }).toList();
-      return newsLists;
+      return newss;
     }
-    return null;
+    return [];
   }
 
   @override
