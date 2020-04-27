@@ -16,10 +16,12 @@ class NewsError extends NewsState {}
 class NewsLoaded extends NewsState {
   final Recommend recommend;
   final List<News> newsList;
+  final bool isLocal;
 
   const NewsLoaded({
     this.recommend,
     this.newsList,
+    this.isLocal,
   });
 
   NewsLoaded copyWith({

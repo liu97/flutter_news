@@ -1,7 +1,9 @@
+import 'dart:convert';
+import 'dart:core';
+
 import 'package:sqflite/sqflite.dart';
 import './baseDao.dart';
 import 'package:flutter_news/model/recommend.dart';
-import 'dart:convert';
 
 // 新闻列表dao实现类
 class NewsDao extends BaseDao {
@@ -46,8 +48,12 @@ class NewsDao extends BaseDao {
       articleUrlColumn: newsJson[articleUrlColumn],
       commentNumColumn: newsJson[commentNumColumn],
       createTimeColumn: newsJson[createTimeColumn],
-      picsColumn: newsJson[picsColumn] != null ? json.encode(newsJson[picsColumn]) : null,
-      videosColumn: newsJson[videosColumn] != null ? json.encode(newsJson[videosColumn]) : null,
+      picsColumn: newsJson[picsColumn] != null
+          ? json.encode(newsJson[picsColumn])
+          : null,
+      videosColumn: newsJson[videosColumn] != null
+          ? json.encode(newsJson[videosColumn])
+          : null,
       channelIdColumn: newsJson[channelIdColumn],
     };
     return tableJson;
@@ -90,19 +96,22 @@ class NewsDao extends BaseDao {
   }
 
   // 根据limit获取新闻列表
-  Future<List<News>> getLimitNews({limit = 11}) async {
+  Future<List<News>> getLimitNews(int  channelId, {int offset = 0, int limit = 11}) async {
     Database db = await getDataBase();
+    
     List<Map> results = await db.query(
       name,
+      where: '$channelIdColumn=$channelId',
       orderBy: idColumn,
       limit: limit,
+      offset: offset,
     );
     if (results.length > 0) {
-      List<News> newss;
-      newss = results.map((item) {
+      List<News> newsList;
+      newsList = results.map((item) {
         return News.fromJson(fromTabelJson(item));
       }).toList();
-      return newss;
+      return newsList;
     }
     return [];
   }

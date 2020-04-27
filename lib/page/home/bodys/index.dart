@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_news/widget/input/clickInput.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_news/page/home/bloc/newsBloc.dart';
-import 'package:flutter_news/page/home/bloc/newsEvent.dart';
-import 'package:flutter_news/page/home/bloc/newsState.dart';
 import 'package:flutter_news/model/recommend.dart';
+import 'package:flutter_news/widget/video/videoIcon.dart';
 
 class IndexPage extends StatefulWidget {
   IndexPage({Key key}) : super(key: key);
@@ -82,7 +81,10 @@ class _IndexPageState extends State<IndexPage>
             //选中的颜色
             labelColor: Colors.black,
             //选中的样式
-            labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            labelStyle: TextStyle(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w500,
+                color: Colors.black),
             //未选中的颜色
             unselectedLabelColor: Colors.black87,
             //未选中的样式
@@ -101,7 +103,7 @@ class _IndexPageState extends State<IndexPage>
           //创建3个Tab页
           return BlocProvider(
             create: (context) => NewsBloc(channelId: 1),
-            child: PageList(),
+            child: PageListWidget(),
           );
         }).toList(),
       ),
@@ -109,12 +111,12 @@ class _IndexPageState extends State<IndexPage>
   }
 }
 
-class PageList extends StatefulWidget {
+class PageListWidget extends StatefulWidget {
   @override
-  _PageListState createState() => _PageListState();
+  _PageListWidgetState createState() => _PageListWidgetState();
 }
 
-class _PageListState extends State<PageList> {
+class _PageListWidgetState extends State<PageListWidget> {
   final _scrollController = ScrollController();
   final _scrollThreshold = 200.0;
   NewsBloc _newsBloc;
@@ -145,8 +147,8 @@ class _PageListState extends State<PageList> {
           return ListView.builder(
             itemBuilder: (BuildContext context, int index) {
               return index >= state.newsList.length
-                  ? BottomLoader()
-                  : NewsWidget(news: state.newsList[index]);
+                  ? BottomLoaderWidget()
+                  : NewsCardWidget(news: state.newsList[index]);
             },
             itemCount: state.newsList.length + 1,
             controller: _scrollController,
@@ -174,7 +176,7 @@ class _PageListState extends State<PageList> {
   }
 }
 
-class BottomLoader extends StatelessWidget {
+class BottomLoaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -192,23 +194,214 @@ class BottomLoader extends StatelessWidget {
   }
 }
 
-class NewsWidget extends StatelessWidget {
+class NewsCardWidget extends StatelessWidget {
   final News news;
 
-  const NewsWidget({Key key, @required this.news}) : super(key: key);
+  const NewsCardWidget({Key key, @required this.news}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // return ListTile(
-    //   leading: Text(
-    //     '${news.id}',
-    //     style: TextStyle(fontSize: 10.0),
-    //   ),
-    //   title: Text(news.title),
-    //   isThreeLine: true,
-    //   subtitle: Text(news.body),
-    //   dense: true,
-    // );
-    return Text(news.title);
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+      ),
+      padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 0.0),
+      child: Container(
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              width: 0.5,
+              color: Color.fromARGB(100, 187, 187, 187),
+            ),
+          ),
+        ),
+        padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 7.0),
+                child: Text(
+                  news.title,
+                  style: TextStyle(
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black),
+                ),
+              ),
+              news.videos != null && news.videos.length > 0
+                  ? NewsVideoWidget(
+                      video: news?.videos?.first,
+                      picture: news?.pics?.first,
+                    )
+                  : NewsImageWidget(imageList: news.pics),
+              NewsBottom(news: news),
+            ]),
+      ),
+    );
+  }
+}
+
+class NewsImageWidget extends StatelessWidget {
+  final List<Picture> imageList;
+  const NewsImageWidget({Key key, this.imageList = const <Picture>[]})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double height = 50.0;
+    switch (imageList.length) {
+      case 1:
+        height = 175.0;
+        break;
+      case 2:
+        height = 100.0;
+        break;
+      case 3:
+        height = 75.0;
+    }
+
+    List<Widget> imageWidget = [];
+    for (int i = 0; i < imageList.length; i++) {
+      Picture item = imageList[i];
+      EdgeInsets padding;
+      BorderRadius borderRadius;
+      if (imageList.length == 1) {
+        // 只有一张图片的时候
+        borderRadius = BorderRadius.circular(3.0);
+        padding = EdgeInsets.zero;
+      } else {
+        if (i == 0) {
+          // 第一张图片
+          padding = EdgeInsets.fromLTRB(0, 0, 2.0, 0);
+          borderRadius = BorderRadius.horizontal(
+            left: Radius.circular(3.0),
+          );
+        } else if (i == imageList.length - 1) {
+          // 最后一张图片
+          padding = EdgeInsets.fromLTRB(2.0, 0, 0, 0);
+          borderRadius = BorderRadius.horizontal(
+            right: new Radius.circular(3.0),
+          );
+        } else {
+          // 中间的图片
+          padding = EdgeInsets.fromLTRB(2.0, 0, 2.0, 0);
+          borderRadius = BorderRadius.zero;
+        }
+      }
+
+      imageWidget.add(Expanded(
+        child: Padding(
+          padding: padding,
+          child: ClipRRect(
+            //剪裁为圆角矩形
+            borderRadius: borderRadius,
+            child: Image.network(
+              item.url,
+              height: height,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+      ));
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: imageWidget,
+    );
+  }
+}
+
+class NewsVideoWidget extends StatelessWidget {
+  final Video video;
+  final Picture picture;
+  const NewsVideoWidget({Key key, @required this.video, @required this.picture})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0, 5.0, 0, 5.0),
+                child: ClipRRect(
+                  //剪裁为圆角矩形
+                  borderRadius: BorderRadius.circular(3.0),
+                  child: Image.network(
+                    picture.url,
+                    height: 175,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
+        Positioned(
+          child: VideoIconWidget(
+            icon: VideoIconWidget.play,
+          ),
+        ),
+        Positioned(
+          right: 10.0,
+          bottom: 10.0,
+          child: VideoDurationWidget(
+            duration: video.duration,
+          ),
+        )
+      ],
+    );
+  }
+}
+
+class NewsBottom extends StatelessWidget {
+  final News news;
+  const NewsBottom({Key key, @required this.news}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0, 7.0, 0, 0),
+      child: Row(
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 5.0, 0),
+            child: Text(
+              news.mediaName,
+              style: TextStyle(
+                color: Color.fromARGB(255, 186, 186, 186),
+                fontSize: 12.0,
+              ),
+            ),
+          ),
+          news.commentNum > 0
+              ? Row(
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(0, 1.0, 1.0, 0),
+                      child: Icon(
+                        Icons.comment,
+                        color: Color.fromARGB(255, 186, 186, 186),
+                        size: 12.0,
+                      ),
+                    ),
+                    Text(
+                      news.commentNum.toString(),
+                      style: TextStyle(
+                        color: Color.fromARGB(255, 186, 186, 186),
+                        fontSize: 12.0,
+                      ),
+                    )
+                  ],
+                )
+              : Text(''),
+          // Text(data)
+        ],
+      ),
+    );
   }
 }

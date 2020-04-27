@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:flutter_news/api/api.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:equatable/equatable.dart';
 
 // http请求封装，包含get、post、downloadFile
 class HttpUtil {
@@ -13,9 +14,6 @@ class HttpUtil {
 
   CancelToken cancelToken = CancelToken();
 
-  /*
-   * config it and create
-   */
   HttpUtil() {
     //BaseOptions、Options、RequestOptions 都可以配置参数，优先级别依次递增，且可以根据优先级别覆盖参数
     options = BaseOptions(
@@ -26,10 +24,7 @@ class HttpUtil {
       //响应流上前后两次接受到数据的间隔，单位为毫秒。
       receiveTimeout: 5000,
       //Http请求头.
-      headers: {
-        //do something
-        // "version": "1.0.0"
-      },
+      headers: {},
       //请求的Content-Type，默认值是"application/json; charset=utf-8",Headers.formUrlEncodedContentType会自动编码请求体.
       // contentType: Headers.formUrlEncodedContentType,
       //表示期望以那种格式(方式)接受响应数据。接受四种类型 `json`, `stream`, `plain`, `bytes`. 默认值是 `json`,
@@ -66,102 +61,137 @@ class HttpUtil {
     }));
   }
 
-  /*
-   * get请求
-   */
+  // get请求
   get(String url,
       {Map<String, dynamic> data,
       Options options,
       CancelToken cancelToken}) async {
-    Response response;
+    var result;
     try {
-      response = await dio.get(url,
+      Response response = await dio.get(url,
           queryParameters: data, options: options, cancelToken: cancelToken);
       print('get success---------${response.statusCode}');
       print('get success---------${response.data}');
-
-//      response.data; 响应体
-//      response.headers; 响应头
-//      response.request; 请求体
-//      response.statusCode; 状态码
-
-    } on DioError catch (e) {
+      result = formatError(data: json.decode(response.toString()));
+    } catch (e) {
       print('get error---------$e');
-      formatError(e);
+      result = formatError(error: e);
     }
-    return json.decode(response.toString());
+
+    return result;
   }
 
-  /*
-   * post请求
-   */
+  // post请求
   post(String url,
       {Map<String, dynamic> data,
       Options options,
       CancelToken cancelToken}) async {
-    Response response;
+    var result;
     try {
-      response = await dio.post(url,
+      Response response = await dio.post(url,
           queryParameters: data, options: options, cancelToken: cancelToken);
       print('post success---------${response.data}');
-    } on DioError catch (e) {
+      result = formatError(data: json.decode(response.toString()));
+    } catch (e) {
       print('post error---------$e');
-      formatError(e);
+      result = formatError(error: e);
     }
-    return json.decode(response.toString());
+    return result;
   }
 
-  /*
-   * 下载文件
-   */
+  // 下载文件
   downloadFile(String urlPath, dynamic savePath) async {
-    Response response;
+    var result;
     try {
-      response = await dio.download(urlPath, savePath,
+      Response response = await dio.download(urlPath, savePath,
           onReceiveProgress: (int count, int total) {
         //进度
         print("$count $total");
       });
       print('downloadFile success---------${response.data}');
-    } on DioError catch (e) {
+      result = formatError(data: response.data);
+    } catch (e) {
       print('downloadFile error---------$e');
-      formatError(e);
+      result = formatError(error: e);
     }
-    return json.decode(response.toString());
+    return result;
   }
 
-  /*
-   * error统一处理
-   */
-  void formatError(DioError e) {
-    if (e.type == DioErrorType.CONNECT_TIMEOUT) {
-      // It occurs when url is opened timeout.
-      print("连接超时");
-    } else if (e.type == DioErrorType.SEND_TIMEOUT) {
-      // It occurs when url is sent timeout.
-      print("请求超时");
-    } else if (e.type == DioErrorType.RECEIVE_TIMEOUT) {
-      //It occurs when receiving timeout
-      print("响应超时");
-    } else if (e.type == DioErrorType.RESPONSE) {
-      // When the server response, but with a incorrect status, such as 404, 503...
-      print("出现异常");
-    } else if (e.type == DioErrorType.CANCEL) {
-      // When the request is cancelled, dio will throw a error with this type.
-      print("请求取消");
+  // error统一处理
+  formatError({dynamic error, Map<String, dynamic> data}) {
+    if (error != null) {
+      return ExceptionHandle.handleException(error);
+    } else if (data != null) {
+      // 与后端约定errorCode不为0时也为报错
+      if (data['errorCode'] == 0) {
+        return data;
+      } else {
+        return HttpError(data['errorCode'], data['message']);
+      }
     } else {
-      //DEFAULT Default error type, Some other Error. In this case, you can read the DioError.error if it is not null.
-      print("未知错误");
+      return ExceptionHandle.handleException(null);
     }
   }
 
-  /*
-   * 取消请求
-   *
-   * 同一个cancel token 可以用于多个请求，当一个cancel token取消时，所有使用该cancel token的请求都会被取消。
-   * 所以参数可选
-   */
+  //  取消请求
+  //  同一个cancel token 可以用于多个请求，当一个cancel token取消时，所有使用该cancel token的请求都会被取消。
+  //  所以参数可选
   void cancelRequests(CancelToken token) {
     token.cancel("cancelled");
   }
+}
+
+class ExceptionHandle {
+  static const int success = 200;
+  static const int success_not_content = 204;
+  static const int unauthorized = 401;
+  static const int forbidden = 403;
+  static const int not_found = 404;
+
+  static const int net_error = 1000;
+  static const int parse_error = 1001;
+  static const int socket_error = 1002;
+  static const int http_error = 1003;
+  static const int timeout_error = 1004;
+  static const int cancel_error = 1005;
+  static const int unknown_error = 9999;
+
+  static HttpError handleException(dynamic error) {
+    if (error is DioError) {
+      if (error.type == DioErrorType.DEFAULT ||
+          error.type == DioErrorType.RESPONSE) {
+        dynamic e = error.error;
+        if (e is SocketException) {
+          return HttpError(socket_error, '网络异常，请检查你的网络！');
+        }
+        if (e is HttpException) {
+          return HttpError(http_error, '服务器异常！');
+        }
+        return HttpError(net_error, '网络异常，请检查你的网络！');
+      } else if (error.type == DioErrorType.CONNECT_TIMEOUT ||
+          error.type == DioErrorType.SEND_TIMEOUT ||
+          error.type == DioErrorType.RECEIVE_TIMEOUT) {
+        return HttpError(timeout_error, '连接超时！');
+      } else if (error.type == DioErrorType.CANCEL) {
+        return HttpError(cancel_error, '取消请求');
+      } else {
+        return HttpError(unknown_error, '未知异常');
+      }
+    } else {
+      return HttpError(unknown_error, '未知异常');
+    }
+  }
+}
+
+class HttpError extends Equatable {
+  final int errorCode;
+  final String message;
+
+  HttpError(this.errorCode, this.message);
+
+  @override
+  List<Object> get props => [errorCode, message];
+
+  @override
+  bool get stringify => true;
 }

@@ -45,6 +45,10 @@ dependencies:
   equatable: ^1.1.1
   # Dart Streams的扩展
   rxdart: ^0.24.0
+  # 全局提示
+  oktoast: ^2.3.2
+  # 视频插件
+  video_player: ^0.10.9+1
 
 dev_dependencies:
   json_model: ^0.0.2

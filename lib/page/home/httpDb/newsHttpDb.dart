@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_news/util/httpUtil.dart';
+export 'package:flutter_news/util/httpUtil.dart';
 import 'package:flutter_news/db/dao/newsDao.dart';
 import 'package:flutter_news/model/recommend.dart';
 
@@ -12,6 +13,7 @@ import 'package:flutter_news/model/recommend.dart';
 class NewsHttpDb {
   HttpUtil httpUtil;
   CancelToken cancelToken;
+  NewsDao db = NewsDao();
 
   NewsHttpDb() {
     httpUtil = new HttpUtil();
@@ -24,15 +26,25 @@ class NewsHttpDb {
       CancelToken cancelToken}) async {
     var response = await httpUtil.get(url,
         data: data, options: options, cancelToken: cancelToken);
-    Recommend recommend = Recommend.fromJson(response);
-    NewsDao db = NewsDao();
+    if (response is HttpError) {
+      return response;
+    } else {
+      Recommend recommend = Recommend.fromJson(response);
 
-    // 将请求来的数据存储到数据库
-    for (int i = 0; i < recommend?.articles?.length; i++) {
-      recommend.articles[i].channelId = recommend.channelId;
-      db.insert(recommend.articles[i]);
+      // 将请求来的数据存储到数据库
+      for (int i = 0; i < recommend?.articles?.length; i++) {
+        recommend.articles[i].channelId = recommend.channelId;
+        db.insert(recommend.articles[i]);
+      }
+      return recommend;
     }
+  }
 
-    return recommend.articles;
+  getLocal(int channelId, int page, int rows) async {
+    List<News> newsList =
+        await db.getLimitNews(channelId, offset: (page-1)*rows, limit: rows);
+    Recommend recommend =
+        Recommend(channelId, newsList.length, 'sql success', 0, newsList);
+    return recommend;
   }
 }
