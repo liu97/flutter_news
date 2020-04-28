@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_news/widget/input/clickInput.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:flutter_news/widget/input/clickInput.dart';
 import 'package:flutter_news/page/home/bloc/newsBloc.dart';
 import 'package:flutter_news/model/recommend.dart';
 import 'package:flutter_news/widget/video/videoIcon.dart';
+import 'package:flutter_news/util/timeUtil.dart';
 
 class IndexPage extends StatefulWidget {
   IndexPage({Key key}) : super(key: key);
@@ -201,42 +203,61 @@ class NewsCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
-      padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 0.0),
-      child: Container(
+    return InkWell(
+      // borderRadius: new BorderRadius.circular(30.0), // 点击时水波纹阴影背景的形状
+      customBorder: RoundedRectangleBorder(
+          side: BorderSide(
+              color: Colors.black,
+              width: 5,
+              style: BorderStyle.solid)), // 没发现什么作用
+
+      focusColor: Colors.blue[200], //水波纹的颜色
+      // highlightColor: Colors.orange[200], //点击后背景高亮颜色
+
+      onTap: () {
+        // print("sssssss");
+      }, // 单击
+      onDoubleTap: () {}, //双击,
+      onLongPress: () {}, // 长按,
+
+      radius: 50, //水波纹的扩展半径，不是水波纹的背景
+      child: Ink(
         decoration: const BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              width: 0.5,
-              color: Color.fromARGB(100, 187, 187, 187),
+          color: Colors.white,
+        ),
+        padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 0.0),
+        child: Ink(
+          decoration: const BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                width: 0.5,
+                color: Color.fromARGB(100, 187, 187, 187),
+              ),
             ),
           ),
-        ),
-        padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.fromLTRB(0, 0, 0, 7.0),
-                child: Text(
-                  news.title,
-                  style: TextStyle(
-                      fontSize: 14.0,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black),
+          padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.fromLTRB(0, 0, 0, 7.0),
+                  child: Text(
+                    news.title,
+                    style: TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black),
+                  ),
                 ),
-              ),
-              news.videos != null && news.videos.length > 0
-                  ? NewsVideoWidget(
-                      video: news?.videos?.first,
-                      picture: news?.pics?.first,
-                    )
-                  : NewsImageWidget(imageList: news.pics),
-              NewsBottom(news: news),
-            ]),
+                news.videos != null && news.videos.length > 0
+                    ? NewsVideoWidget(
+                        video: news?.videos?.first,
+                        picture: news?.pics?.first,
+                      )
+                    : NewsImageWidget(imageList: news.pics),
+                NewsBottom(news: news),
+              ]),
+        ),
       ),
     );
   }
@@ -399,7 +420,16 @@ class NewsBottom extends StatelessWidget {
                   ],
                 )
               : Text(''),
-          // Text(data)
+          Padding(
+            padding: EdgeInsets.fromLTRB(5.0, 0, 0, 0),
+            child: Text(
+              TimeUtil.historyDate(news.createTime),
+              style: TextStyle(
+                color: Color.fromARGB(255, 186, 186, 186),
+                fontSize: 12.0,
+              ),
+            ),
+          )
         ],
       ),
     );

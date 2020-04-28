@@ -27,15 +27,17 @@ class NewsLoaded extends NewsState {
   NewsLoaded copyWith({
     recommend,
     newsList,
+    isLocal,
   }) {
     return NewsLoaded(
       recommend: recommend ?? this.recommend,
       newsList: newsList ?? this.newsList,
+      isLocal: isLocal ?? this.isLocal,
     );
   }
 
   @override
-  List<Object> get props => [recommend];
+  List<Object> get props => [recommend, newsList, isLocal];
 
   @override
   bool get stringify => true;

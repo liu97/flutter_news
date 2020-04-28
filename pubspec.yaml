@@ -49,6 +49,8 @@ dependencies:
   oktoast: ^2.3.2
   # 视频插件
   video_player: ^0.10.9+1
+  # 日期格式化插件
+  date_format: ^1.0.8
 
 dev_dependencies:
   json_model: ^0.0.2

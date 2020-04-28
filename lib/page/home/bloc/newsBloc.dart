@@ -42,7 +42,9 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
           Recommend localRecommend =
               await newsHttpDb.getLocal(channelId, 1, rows);
           yield NewsLoaded(
-              recommend: localRecommend, newsList: localRecommend.articles, isLocal: true);
+              recommend: localRecommend,
+              newsList: localRecommend.articles,
+              isLocal: true);
 
           // 再发起请求
           var result = await newsHttpDb.get('/recommend',
@@ -60,14 +62,15 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             final Recommend recommend = result;
             final List<News> newsList = recommend.articles;
 
-            yield NewsLoaded(recommend: recommend, newsList: newsList, isLocal: false);
+            yield NewsLoaded(
+                recommend: recommend, newsList: newsList, isLocal: false);
           }
           return;
         }
         if (currentState is NewsLoaded) {
           // 已有数据加载状态
           final Recommend recommend = await newsHttpDb.get('/recommend', data: {
-            'page': currentState.newsList.length / rows,
+            'page': (currentState.newsList.length / rows) + 1,
             'rows': rows,
             'channelId': channelId,
           });
@@ -77,6 +80,7 @@ class NewsBloc extends Bloc<NewsEvent, NewsState> {
             recommend: recommend,
             newsList: currentState.newsList + newsList,
           );
+          return;
         }
       } catch (_) {
         yield NewsError();
