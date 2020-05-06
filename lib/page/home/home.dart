@@ -71,6 +71,7 @@ class _HomePageState extends State<HomePage> {
           //点击事件
           onTap: _onBarItemTapped,
         ),
+        backgroundColor: Color.fromARGB(255, 255, 255, 255),
       ),
     );
   }

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:oktoast/oktoast.dart';
 
 import 'package:flutter_news/widget/input/clickInput.dart';
 import 'package:flutter_news/page/home/bloc/newsBloc.dart';
 import 'package:flutter_news/model/recommend.dart';
 import 'package:flutter_news/widget/video/videoIcon.dart';
 import 'package:flutter_news/util/timeUtil.dart';
+import 'package:flutter_news/util/httpUtil.dart';
+import 'package:flutter_news/widget/skeleton/newsSkeleton.dart';
 
 class IndexPage extends StatefulWidget {
   IndexPage({Key key}) : super(key: key);
@@ -118,9 +122,10 @@ class PageListWidget extends StatefulWidget {
   _PageListWidgetState createState() => _PageListWidgetState();
 }
 
-class _PageListWidgetState extends State<PageListWidget> {
+class _PageListWidgetState extends State<PageListWidget> with AutomaticKeepAliveClientMixin {
+  RefreshController _refreshController = RefreshController();
   final _scrollController = ScrollController();
-  final _scrollThreshold = 200.0;
+  final _scrollThreshold = 1200.0;
   NewsBloc _newsBloc;
 
   @override
@@ -128,40 +133,11 @@ class _PageListWidgetState extends State<PageListWidget> {
     super.initState();
     _scrollController.addListener(_onScroll);
     _newsBloc = BlocProvider.of<NewsBloc>(context);
-    _newsBloc.add(Fetch());
+    fetchList();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<NewsBloc, NewsState>(
-      builder: (context, state) {
-        if (state is NewsError) {
-          return Center(
-            child: Text('failed to fetch news'),
-          );
-        }
-        if (state is NewsLoaded) {
-          if (state.newsList.isEmpty) {
-            return Center(
-              child: Text('no newsList'),
-            );
-          }
-          return ListView.builder(
-            itemBuilder: (BuildContext context, int index) {
-              return index >= state.newsList.length
-                  ? BottomLoaderWidget()
-                  : NewsCardWidget(news: state.newsList[index]);
-            },
-            itemCount: state.newsList.length + 1,
-            controller: _scrollController,
-          );
-        }
-        return Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
-  }
+  bool get wantKeepAlive => true;
 
   @override
   void dispose() {
@@ -169,28 +145,61 @@ class _PageListWidgetState extends State<PageListWidget> {
     super.dispose();
   }
 
+  // 刷新列表调用函数
+  void fetchList({bool isRefresh = true}) {
+    _newsBloc.add(Fetch(
+        isRefresh: isRefresh,
+        successCallback: (result) => _refreshController.refreshCompleted(),
+        failCallback: (HttpError result) {
+          showToast(
+            result.message,
+            position: ToastPosition.center,
+            backgroundColor: Color.fromARGB(255, 255, 61, 0),
+            radius: 13.0,
+            textStyle: TextStyle(fontSize: 13.0),
+            animationBuilder: Miui10AnimBuilder(),
+          );
+          _refreshController.refreshFailed();
+        }));
+  }
+
+  // 滚动调用函数
   void _onScroll() {
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.position.pixels;
     if (maxScroll - currentScroll <= _scrollThreshold) {
-      _newsBloc.add(Fetch());
+      fetchList(isRefresh: false);
     }
   }
-}
 
-class BottomLoaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      alignment: Alignment.center,
-      child: Center(
-        child: SizedBox(
-          width: 33,
-          height: 33,
-          child: CircularProgressIndicator(
-            strokeWidth: 1.5,
-          ),
-        ),
+      color: Color.fromARGB(255, 255, 255, 255),
+      child: BlocBuilder<NewsBloc, NewsState>(
+        builder: (context, state) {
+          if (state is NewsError) {
+            return NewsSkeleton();
+          }
+          if (state is NewsLoaded) {
+            return SmartRefresher(
+              controller: _refreshController,
+              enablePullUp: true,
+              onRefresh: fetchList,
+              onLoading: fetchList,
+              child: ListView.builder(
+                itemBuilder: (BuildContext context, int index) {
+                  return NewsCardWidget(news: state.newsList[index]);
+                },
+                itemCount: state.newsList.length,
+                controller: _scrollController,
+              ),
+            );
+          }
+          return Center(
+            child: NewsSkeleton(),
+          );
+        },
       ),
     );
   }
